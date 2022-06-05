@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -74,4 +75,58 @@ func (h *bookHandler) PostBookHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, book)
+}
+
+// func to handle book update route
+func (h *bookHandler) UpdateBookHandler(ctx *gin.Context) {
+	var bookRequest book.BookRequest
+	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 64)
+
+	err := ctx.ShouldBindJSON(&bookRequest)
+	if err != nil {
+
+		log.Fatal(err)
+
+		errorMessages := []string{}
+		for _, e := range err.(validator.ValidationErrors) {
+			errorMessage := fmt.Sprintf("Error on field: %s, condition: %s", e.Field(), e.ActualTag())
+			errorMessages = append(errorMessages, errorMessage)
+		}
+
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"message": errorMessages,
+		})
+		return
+	}
+
+	book, err := h.bookService.Update(bookRequest, int(id))
+	if err != nil {
+		ctx.JSON(http.StatusConflict, err)
+	}
+
+	ctx.JSON(http.StatusOK, book)
+}
+
+// func to handle book update route
+func (h *bookHandler) DeleteBookHandler(ctx *gin.Context) {
+	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   true,
+			"message": err,
+		})
+		return
+	}
+
+	err = h.bookService.Delete(int(id))
+	if err != nil {
+		ctx.JSON(http.StatusConflict, err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"error":   false,
+		"message": "Success deleted book.",
+	})
 }

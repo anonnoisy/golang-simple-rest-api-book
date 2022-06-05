@@ -1,8 +1,10 @@
 package book
 
+import "encoding/json"
+
 type BookRequest struct {
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
-	Price       string `json:"price" binding:"required,number"`
-	Rating      string `json:"rating" binding:"required,number"`
+	Title       string      `json:"title" binding:"required"`
+	Description string      `json:"description"`
+	Price       json.Number `json:"price" binding:"required,numeric"`
+	Rating      string      `json:"rating" binding:"required,number"`
 }
